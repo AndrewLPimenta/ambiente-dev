@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulário</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h2 {
+      color: #333;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .pergunta {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0069d9;
+    }
+  </style>
+</head>
+<body>
+  <h2>Responda o formulário</h2>
+  <form id="formRespostas"></form>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const usuarioId = params.get('usuario');
+    const formId = params.get('form') || 1;
+
+    // Garantir que usuarioId exista
+    if (!usuarioId) {
+      alert("Usuário não identificado. Retorne ao cadastro.");
+      window.location.href = "register.html";
+    }
+
+    async function carregarFormulario() {
+      const res = await fetch(`http://localhost:3001/api/formulario/${formId}`);
+      if (!res.ok) {
+        alert("Erro ao carregar formulário");
+        return;
+      }
+
+      const formulario = await res.json();
+      const form = document.getElementById('formRespostas');
+
+      formulario.perguntas.forEach(pergunta => {
+        const div = document.createElement('div');
+        div.classList.add('pergunta');
+
+        const label = document.createElement('label');
+        label.textContent = pergunta.texto;
+        div.appendChild(label);
+
+        pergunta.opcoes.forEach(opcao => {
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = `pergunta_${pergunta.id}`;
+          input.value = opcao.id;
+
+          const span = document.createElement('span');
+          span.textContent = opcao.texto;
+
+          div.appendChild(input);
+          div.appendChild(span);
+          div.appendChild(document.createElement('br'));
+        });
+
+        form.appendChild(div);
+      });
+
+      const btn = document.createElement('button');
+      btn.textContent = 'Enviar respostas';
+      btn.type = 'submit';
+      form.appendChild(btn);
+    }
+
+    carregarFormulario();
+
+    document.getElementById('formRespostas').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const respostas = [];
+      document.querySelectorAll('.pergunta').forEach(div => {
+        const perguntaId = div.querySelector('input').name.split('_')[1];
+        const opcaoSelecionada = div.querySelector('input:checked');
+        if (opcaoSelecionada) {
+          respostas.push({
+            idPergunta: parseInt(perguntaId),
+            idOpcao: parseInt(opcaoSelecionada.value)
+          });
+        }
+      });
+
+      if (respostas.length === 0) {
+        alert("Você precisa responder pelo menos uma pergunta.");
+        return;
+      }
+
+      // Envia respostas
+      const res = await fetch('http://localhost:3001/api/respostas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idUsuario: parseInt(usuarioId), respostas })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert("Erro ao salvar respostas: " + (err.error || "Tente novamente."));
+        return;
+      }
+
+      // Busca dados completos do usuário (incluindo idPerfil)
+      const perfilRes = await fetch(`http://localhost:3001/api/usuario/${usuarioId}`);
+      if (!perfilRes.ok) {
+        alert("Erro ao buscar perfil do usuário");
+        return;
+      }
+
+      const usuario = await perfilRes.json();
+      const perfilId = usuario.resultados?.[0]?.idPerfil;
+
+      if (perfilId === 1) {
+        window.location.href = 'perfil_conservador.html';
+      } else if (perfilId === 2) {
+        window.location.href = 'perfil_moderado.html';
+      } else if (perfilId === 3) {
+        window.location.href = 'perfil_arrojado.html';
+      } else {
+        alert("Não foi possível determinar o perfil.");
+      }
+    });
+  </script>
+</body>
+</html>
