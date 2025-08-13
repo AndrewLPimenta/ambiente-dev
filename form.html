@@ -55,7 +55,7 @@
     }
 
     async function carregarFormulario() {
-      const res = await fetch(`http://localhost:3001/api/formulario/${formId}`);
+      const res = await fetch(`http://localhost:3001/api/formulario/1`);
       if (!res.ok) {
         alert("Erro ao carregar formulário");
         return;
@@ -141,11 +141,11 @@
       const perfilId = usuario.resultados?.[0]?.idPerfil;
 
       if (perfilId === 1) {
-        window.location.href = 'perfil_conservador.html';
+        window.location.href = '/ambiente-dev/perfil_conservador.html';
       } else if (perfilId === 2) {
-        window.location.href = 'perfil_moderado.html';
+        window.location.href = '/ambiente-dev/perfil_moderado.html';
       } else if (perfilId === 3) {
-        window.location.href = 'perfil_arrojado.html';
+        window.location.href = '/ambiente-dev/perfil_arrojado.html';
       } else {
         alert("Não foi possível determinar o perfil.");
       }

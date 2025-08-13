@@ -1,0 +1,45 @@
+<form id="loginForm">
+    <input type="email" id="email" placeholder="E-mail" required>
+    <input type="password" id="senha" placeholder="Senha" required>
+    <button type="submit">Entrar</button>
+  </form>
+  
+  <p id="mensagem" style="color: red;"></p>
+  
+  <script>
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+  
+    const email = document.getElementById("email").value;
+    const senha = document.getElementById("senha").value;
+  
+    try {
+      const response = await fetch("http://localhost:3001/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, senha })
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        document.getElementById("mensagem").textContent = data.message || "Erro ao fazer login";
+        return;
+      }
+  
+      // Sucesso no login
+      document.getElementById("mensagem").style.color = "green";
+      document.getElementById("mensagem").textContent = "Login realizado com sucesso!";
+  
+      // Salva o token
+      localStorage.setItem("token", data.data.token);
+      localStorage.setItem("userId", data.data.user.id);
+  
+      // Redireciona
+      window.location.href = `form.html?usuario=${data.data.user.id}`;
+    } catch (error) {
+      document.getElementById("mensagem").textContent = "Erro de conexão com o servidor";
+    }
+  });
+  </script>
+  

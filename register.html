@@ -28,6 +28,7 @@
     <input type="password" id="confirmarSenha" name="confirmarSenha" required>
 
     <button type="submit">Cadastrar</button>
+    <h5>Ja possui uma conta? <a href="/ambiente-dev/login.html">Login</a></h5>
   </form>
 
   <script>
@@ -49,7 +50,7 @@
 
       if (res.ok) {
         const userId = data.userId; // pega ID do back-end
-        window.location.href = `/form.html?usuario=${userId}&form=1`;
+        window.location.href = `form.html?usuario=${userId}&form=1`;
       } else {
         alert(data.message || "Erro ao cadastrar");
       }
