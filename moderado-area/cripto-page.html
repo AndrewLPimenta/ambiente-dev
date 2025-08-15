@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cotações em Tempo Real</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    select {
+      padding: 5px 10px;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .cotacao {
+      background: #1e1e1e;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 8px auto;
+      width: 300px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 18px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+
+    .symbol {
+      font-weight: bold;
+    }
+
+    .price {
+      color: #4caf50;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cotações em Tempo Real</h1>
+
+  <label for="moeda">Moeda: </label>
+  <select id="moeda">
+    <option value="USD">USD - Dólar</option>
+    <option value="BRL">BRL - Real</option>
+    <option value="EUR">EUR - Euro</option>
+  </select>
+
+  <div id="cotacoes"></div>
+
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    const socket = io("http://localhost:3001");
+    const cotacoesDiv = document.getElementById("cotacoes");
+    const selectMoeda = document.getElementById("moeda");
+
+    let moedaSelecionada = selectMoeda.value;
+
+    selectMoeda.addEventListener("change", () => {
+      moedaSelecionada = selectMoeda.value;
+    });
+
+    socket.on("precoAtualizado", (data) => {
+      let div = document.getElementById(data.symbol);
+      if (!div) {
+        div = document.createElement("div");
+        div.id = data.symbol;
+        div.classList.add("cotacao");
+
+        const symbolSpan = document.createElement("span");
+        symbolSpan.classList.add("symbol");
+        symbolSpan.textContent = data.symbol;
+
+        const priceSpan = document.createElement("span");
+        priceSpan.classList.add("price");
+        priceSpan.id = `price-${data.symbol}`;
+
+        div.appendChild(symbolSpan);
+        div.appendChild(priceSpan);
+        cotacoesDiv.appendChild(div);
+      }
+
+      const priceEl = document.getElementById(`price-${data.symbol}`);
+      priceEl.textContent = data[moedaSelecionada].toLocaleString(
+        moedaSelecionada === "USD" ? 'en-US' :
+        moedaSelecionada === "EUR" ? 'de-DE' : 'pt-BR',
+        { style: 'currency', currency: moedaSelecionada }
+      );
+    });
+  </script>
+</body>
+</html>
