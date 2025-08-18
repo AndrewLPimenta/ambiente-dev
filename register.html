@@ -10,6 +10,7 @@
     input { width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; }
     button { padding: 10px; width: 100%; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
     button:hover { background: #0056b3; }
+    h5 { text-align: center; margin-top: 15px; }
   </style>
 </head>
 <body>
@@ -28,8 +29,10 @@
     <input type="password" id="confirmarSenha" name="confirmarSenha" required>
 
     <button type="submit">Cadastrar</button>
-    <h5>Ja possui uma conta? <a href="/ambiente-dev/login.html">Login</a></h5>
+    <h5>Já possui uma conta? <a href="/login.html">Login</a></h5>
   </form>
+
+  <p id="mensagem" style="color: red; text-align: center;"></p>
 
   <script>
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -40,19 +43,32 @@
       const senha = document.getElementById('senha').value;
       const confirmarSenha = document.getElementById('confirmarSenha').value;
 
-      const res = await fetch("http://localhost:3001/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, senha, confirmarSenha })
-      });
+      try {
+        const res = await fetch("http://localhost:3001/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome, email, senha, confirmarSenha })
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (res.ok) {
-        const userId = data.userId; // pega ID do back-end
-        window.location.href = `form.html?usuario=${userId}&form=1`;
-      } else {
-        alert(data.message || "Erro ao cadastrar");
+        if (!res.ok) {
+          document.getElementById("mensagem").textContent = data.message || "Erro ao cadastrar";
+          return;
+        }
+
+        // Salva token e userId para manter a sessão
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userId", data.userId);
+
+        console.log("TOKEN REGISTRO:", data.token);
+        console.log("USERID REGISTRO:", data.userId);
+
+        // Redireciona para o formulário inicial
+        window.location.href = `form.html?usuario=${data.userId}&form=1`;
+
+      } catch (err) {
+        document.getElementById("mensagem").textContent = "Erro de conexão com o servidor";
       }
     });
   </script>
