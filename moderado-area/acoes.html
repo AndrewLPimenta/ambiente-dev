@@ -27,12 +27,6 @@
       background: #0077cc;
       color: white;
     }
-    .positive {
-      color: green;
-    }
-    .negative {
-      color: red;
-    }
     .loading, .error {
       text-align: center;
       padding: 20px;
@@ -48,10 +42,10 @@
   <table>
     <thead>
       <tr>
-        <th>Ativo</th>
+        <th>Ticker</th>
         <th>Nome</th>
         <th>Preço</th>
-        <th>Variação</th>
+        <th>Moeda</th>
       </tr>
     </thead>
     <tbody id="stocks-body">
@@ -60,8 +54,7 @@
   </table>
 
   <script>
-
-    const API_URL = "http://localhost:3001/api/stocks?symbols=PETR4.SA,VALE3.SA,ITUB4.SA,AAPL,MSFT";
+    const API_URL = "http://localhost:3001/api/acoes";
     const tbody = document.getElementById("stocks-body");
 
     async function fetchAndRender() {
@@ -72,25 +65,20 @@
 
         tbody.innerHTML = "";
 
-        if (!data.stocks || data.stocks.length === 0) {
+        if (!data.acoes || data.acoes.length === 0) {
           tbody.innerHTML = `<tr><td colspan="4" class="error">Nenhum dado disponível</td></tr>`;
           return;
         }
 
-        data.stocks.forEach(stock => {
+        data.acoes.forEach(stock => {
           const tr = document.createElement("tr");
-
-          const price = isNaN(stock.price) ? "-" : stock.price.toFixed(2) + " " + (stock.currency || "");
-          const change = isNaN(stock.change) ? "-" : stock.change.toFixed(2);
-          const changePercent = isNaN(stock.changePercent) ? "-" : stock.changePercent.toFixed(2) + "%";
+          const preco = stock.precoAtual !== null ? stock.precoAtual.toFixed(2) : "-";
 
           tr.innerHTML = `
-            <td>${stock.symbol || "-"}</td>
-            <td>${stock.name || "-"}</td>
-            <td>${price}</td>
-            <td class="${stock.change >= 0 ? "positive" : "negative"}">
-              ${change} (${changePercent})
-            </td>
+            <td>${stock.ticker || "-"}</td>
+            <td>${stock.nome || "-"}</td>
+            <td>${preco}</td>
+            <td>${stock.moeda || "-"}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -102,7 +90,7 @@
     }
 
     fetchAndRender();
-    setInterval(fetchAndRender, 5000);
+    setInterval(fetchAndRender, 5000); // Atualiza a cada 5 segundos
   </script>
 </body>
 </html>

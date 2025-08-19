@@ -45,7 +45,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       window.location.href = `form.html?usuario=${data.data.user.id}`;
     } else if (data.data.perfil) {
       const perfil = data.data.perfil.toLowerCase();
-      window.location.href = `perfil_${perfil}.html`;
+      window.location.href = `/ambiente-dev/perfil_${perfil}.html`;
     } else {
       // fallback caso algo falhe
       window.location.href = `form.html?usuario=${data.data.user.id}`;
