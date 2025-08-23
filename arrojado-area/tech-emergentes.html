@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ações Emergentes, Tech e Voláteis</title>
+<style>
+  body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f6f8; color:#333; }
+  header { background:#0d6efd; color:white; padding:20px; text-align:center; }
+  header h1 { margin:0 0 10px 0; }
+  main { max-width:900px; margin:30px auto; padding:0 20px; }
+  section { margin-bottom:30px; }
+  .cards-container { display:flex; flex-wrap:wrap; gap:15px; }
+  .stock-card { background:white; padding:15px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); flex:1 1 calc(33% - 10px); min-width:200px; }
+  .stock-card h3 { margin-top:0; margin-bottom:10px; }
+  .stock-card p { margin:5px 0; font-size:0.95rem; }
+  footer { text-align:center; padding:20px; background:#f1f3f5; margin-top:40px; font-size:0.9rem; }
+  @media(max-width:700px) { .stock-card { flex:1 1 calc(50% - 10px); } }
+  @media(max-width:450px) { .stock-card { flex:1 1 100%; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ações de Empresas Emergentes e Tech</h1>
+  <p>Exemplo de dados de ações, incluindo volatilidade e preços em cards.</p>
+</header>
+
+<main>
+  <section>
+    <h2>Ações Populares (Tech)</h2>
+    <div id="popularContainer" class="cards-container"></div>
+  </section>
+
+  <section>
+    <h2>Ações Emergentes</h2>
+    <div id="emergingContainer" class="cards-container"></div>
+  </section>
+
+  <section>
+    <h2>Mais Voláteis</h2>
+    <div id="volatileContainer" class="cards-container"></div>
+  </section>
+</main>
+
+<footer>
+  <p>Fontes: 
+    <a href="https://www.alphavantage.co/" target="_blank">Alpha Vantage</a>, 
+    <a href="https://finnhub.io/" target="_blank">Finnhub</a>, 
+    <a href="https://twelvedata.com/" target="_blank">Twelve Data</a>.
+  </p>
+</footer>
+
+<script>
+const API_BASE = "http://localhost:3001/api/stocks"; // URL completa do servidor Express
+const stocks = ["AAPL","TSLA","MSFT","PLTR","ROKU","SNOW","BIDU","UBER","ZM","DOCU"];
+
+async function fetchStocks(tickers) {
+  try {
+    const res = await fetch(`${API_BASE}/emerging-tech?tickers=${tickers.join(",")}`);
+    if (!res.ok) throw new Error(`Erro na requisição: ${res.status}`);
+    const data = await res.json();
+
+    const containers = {
+      popular: document.getElementById("popularContainer"),
+      emerging: document.getElementById("emergingContainer"),
+      volatile: document.getElementById("volatileContainer")
+    };
+
+    // Limpa containers
+    Object.values(containers).forEach(c => c.innerHTML = "");
+
+    tickers.forEach((ticker, i) => {
+      const stock = data[ticker];
+      if (!stock) return;
+
+      // Prioriza Finnhub > AlphaVantage > TwelveData
+      const source = stock.finnhub?.price ? stock.finnhub :
+                     stock.alphaVantage?.price ? stock.alphaVantage :
+                     stock.twelveData;
+
+      const price = source?.price ?? "N/A";
+      const change = source?.changePercent !== null && source?.changePercent !== undefined ? source.changePercent.toFixed(2) : "N/A";
+
+      const card = document.createElement("div");
+      card.className = "stock-card";
+      card.innerHTML = `
+        <h3>${ticker}</h3>
+        <p>Preço atual: $${price}</p>
+        <p>Variação: ${change}%</p>
+      `;
+
+      // Distribui nos containers
+      if (i < 3) containers.popular.appendChild(card);
+      else if (i < 7) containers.emerging.appendChild(card);
+      else containers.volatile.appendChild(card);
+    });
+  } catch(err) {
+    console.error("Erro ao buscar ações:", err);
+    alert("Erro ao buscar dados. Verifique se o servidor está rodando em localhost:3001");
+  }
+}
+
+// Inicializa
+fetchStocks(stocks);
+</script>
+</body>
+</html>
